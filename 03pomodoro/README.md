@@ -93,6 +93,21 @@ dist
 - Browser notification meminta izin saat pertama kali digunakan.
 - Audio alarm dapat dibatasi oleh kebijakan autoplay browser.
 
+## Perubahan Terbaru
+
+- Memperbaiki bug countdown agar waktu tidak menjadi negatif dan progress tetap di 100% setelah sesi selesai.
+- Menambahkan alert popup otomatis ketika sesi selesai (break atau focus) tanpa merusak tata letak konten.
+- Memperbaiki progress bar agar menghitung keseluruhan durasi semua sesi, bukan hanya sesi tunggal.
+- Menambahkan label status `Focus` / `Break` di bawah timer.
+- Memperbesar ukuran tampilan timer dan membuatnya hampir memenuhi lebar `timer-card`.
+- Menghapus wrapper `progress-ring` / `clean-ring` untuk tampilan timer yang lebih sederhana.
+- Mengatur `main-card` agar selalu berada di tengah halaman.
+- Membuat `main-card` transparan agar kartu internal terlihat seperti melayang.
+- Memperbaiki responsive header dan ukuran tombol agar tidak bertumpuk di perangkat kecil.
+- Menambahkan tema break dengan background biru muda saat `Break Time`.
+- Memastikan dark mode tetap berfungsi saat status break aktif.
+- Mengubah default agar halaman tidak langsung membuka panel Settings dan Statistics saat pertama kali dimuat.
+
 ## Lisensi
 
 This project is open source and can be used or modified freely.

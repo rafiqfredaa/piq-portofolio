@@ -554,3 +554,45 @@ button {
     margin: 0 auto;
   }
 }
+
+@media (max-width: 500px) {
+  .app-shell {
+    padding: 16px 0 28px;
+  }
+
+  .main-card {
+    width: 100%;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .timer-card,
+  .controls-card,
+  .progress-card,
+  .settings-card,
+  .stats-card {
+    padding: 16px;
+    border-radius: 22px;
+  }
+
+  .timer-display {
+    padding: 20px 0;
+    gap: 10px;
+  }
+
+  .timer-center-time {
+    font-size: clamp(6rem, 12vw, 10rem);
+  }
+
+  .timer-status-label {
+    font-size: 0.95rem;
+  }
+
+  .theme-toggle,
+  .settings-toggle,
+  .stats-toggle {
+    padding: 9px 12px;
+    min-width: 0;
+    font-size: 0.85rem;
+  }
+}

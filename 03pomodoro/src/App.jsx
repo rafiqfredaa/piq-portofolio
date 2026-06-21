@@ -8,8 +8,8 @@ import ThemeToggle from './components/ThemeToggle.jsx';
 import usePomodoro from './hooks/usePomodoro.js';
 
 function App() {
-  const [showSettings, setShowSettings] = useState(true);
-  const [showStatistics, setShowStatistics] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showStatistics, setShowStatistics] = useState(false);
   const {
     status,
     focusDuration,
