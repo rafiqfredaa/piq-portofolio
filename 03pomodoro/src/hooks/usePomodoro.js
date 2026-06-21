@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { loadJson, loadValue, saveJson, saveValue } from '../utils/storage.js';
 import { formatTime, getInitialStats, getTodayKey } from '../utils/time.js';
 import { playAlarm, sendNotification } from '../utils/notifications.js';
@@ -46,9 +46,32 @@ const loadSettings = () => {
 };
 
 const getProgressPercentage = ({ status, secondsLeft, focusDuration, breakDuration, currentSession, sessions }) => {
-  const totalSessionSeconds = status === 'Break Time' ? breakDuration * 60 : focusDuration * 60;
-  const elapsed = totalSessionSeconds - secondsLeft;
-  return totalSessionSeconds > 0 ? Math.round((elapsed / totalSessionSeconds) * 100) : 0;
+  const focusSeconds = focusDuration * 60;
+  const breakSeconds = breakDuration * 60;
+  const totalCycleSeconds = focusSeconds * sessions + breakSeconds * Math.max(sessions - 1, 0);
+
+  if (status === 'Completed') {
+    return totalCycleSeconds > 0 ? 100 : 0;
+  }
+
+  const clampedSecondsLeft = Math.max(secondsLeft, 0);
+  let completedFocusSeconds = 0;
+  let completedBreakSeconds = 0;
+  let currentSegmentElapsed = 0;
+
+  if (status === 'Focus Time') {
+    completedFocusSeconds = focusSeconds * Math.max(currentSession - 1, 0);
+    completedBreakSeconds = breakSeconds * Math.max(currentSession - 1, 0);
+    currentSegmentElapsed = focusSeconds - clampedSecondsLeft;
+  } else if (status === 'Break Time') {
+    completedFocusSeconds = focusSeconds * currentSession;
+    completedBreakSeconds = breakSeconds * Math.max(currentSession - 1, 0);
+    currentSegmentElapsed = breakSeconds - clampedSecondsLeft;
+  }
+
+  const elapsed = completedFocusSeconds + completedBreakSeconds + currentSegmentElapsed;
+  const raw = totalCycleSeconds > 0 ? Math.round((elapsed / totalCycleSeconds) * 100) : 0;
+  return Math.min(Math.max(raw, 0), 100);
 };
 
 function usePomodoro() {
@@ -67,6 +90,9 @@ function usePomodoro() {
   const [theme, setTheme] = useState(savedTheme);
   const [quote, setQuote] = useState(getRandomQuote());
   const [stats, setStats] = useState(savedStats);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
+  const alertTimeoutRef = useRef(null);
 
   useEffect(() => {
     saveJson(STORAGE_KEYS.settings, { focusDuration, breakDuration, sessions });
@@ -80,11 +106,27 @@ function usePomodoro() {
     saveJson(STORAGE_KEYS.stats, stats);
   }, [stats]);
 
+  const showTemporaryAlert = (message) => {
+    setAlertMessage(message);
+    setShowAlert(true);
+    if (alertTimeoutRef.current) {
+      window.clearTimeout(alertTimeoutRef.current);
+    }
+    alertTimeoutRef.current = window.setTimeout(() => {
+      setShowAlert(false);
+      setAlertMessage('');
+      alertTimeoutRef.current = null;
+    }, 7000);
+  };
+
   useEffect(() => {
     let interval = null;
     if (isRunning && !isPaused) {
       interval = window.setInterval(() => {
-        setSecondsLeft((current) => current - 1);
+        setSecondsLeft((current) => {
+          if (current <= 0) return 0;
+          return current - 1;
+        });
       }, 1000);
     }
 
@@ -105,17 +147,20 @@ function usePomodoro() {
           completedToday: stats.completedToday + 1,
         };
         setStats(nextStats);
+        showTemporaryAlert('Waktu habis! Fokus sesi selesai. Istirahat sebentar.');
         playAlarm();
-        await sendNotification('Focus session completed.', 'Time for a break.');
 
         if (currentSession < sessions) {
           setStatus('Break Time');
           setSecondsLeft(breakDuration * 60);
+          sendNotification('Focus session completed.', 'Time for a break.').catch(() => {});
         } else {
           setIsRunning(false);
           setIsPaused(false);
           setStatus('Completed');
           setSecondsLeft(0);
+          showTemporaryAlert('Semua sesi selesai! Lakukan reset untuk memulai lagi.');
+          sendNotification('Focus session completed.', 'All sessions finished.').catch(() => {});
         }
       } else if (status === 'Break Time') {
         const nextStats = {
@@ -123,8 +168,9 @@ function usePomodoro() {
           breakToday: stats.breakToday + breakDuration,
         };
         setStats(nextStats);
+        showTemporaryAlert('Waktu habis! Sesi istirahat selesai. Kembali ke fokus.');
         playAlarm();
-        await sendNotification('Break completed.', 'Back to focus.');
+        sendNotification('Break completed.', 'Back to focus.').catch(() => {});
 
         setCurrentSession((current) => current + 1);
         setStatus('Focus Time');
@@ -225,6 +271,8 @@ function usePomodoro() {
     focusToday: stats.focusToday,
     breakToday: stats.breakToday,
     completedToday: stats.completedToday,
+    alertMessage,
+    showAlert,
     startTimer,
     pauseTimer,
     resumeTimer,

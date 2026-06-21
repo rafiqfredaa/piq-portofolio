@@ -27,6 +27,8 @@ function App() {
     focusToday,
     breakToday,
     completedToday,
+    alertMessage,
+    showAlert,
     startTimer,
     pauseTimer,
     resumeTimer,
@@ -41,9 +43,12 @@ function App() {
   }, [secondsLeft, status]);
 
   useEffect(() => {
-    document.body.classList.remove('light', 'dark');
+    document.body.classList.remove('light', 'dark', 'break-mode');
     document.body.classList.add(theme);
-  }, [theme]);
+    if (status === 'Break Time') {
+      document.body.classList.add('break-mode');
+    }
+  }, [theme, status]);
 
   return (
     <div className="app-shell">
@@ -72,6 +77,7 @@ function App() {
         <section className="main-card">
           <Timer
             secondsLeft={secondsLeft}
+            status={status}
             progress={progress}
             currentSession={currentSession}
             totalSessions={sessions}
@@ -91,6 +97,14 @@ function App() {
           <ProgressBar progress={progress} currentSession={currentSession} totalSessions={sessions} />
         </section>
       </main>
+
+      {showAlert && (
+        <div className="toast-alert-overlay">
+          <div className="toast-alert">
+            <p>{alertMessage}</p>
+          </div>
+        </div>
+      )}
 
       {showSettings && (
         <div className="modal-overlay" onClick={() => setShowSettings(false)}>

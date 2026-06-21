@@ -47,6 +47,41 @@
   --break: #fb923c;
 }
 
+.break-mode {
+  background: #dbeafe !important;
+}
+
+body.break-mode:not(.dark) {
+  color: #0f172a;
+  --bg: #dbeafe;
+  --panel: #ffffff;
+  --panel-strong: #e0efff;
+  --text: #0f172a;
+  --muted: #475569;
+  --border: rgba(148, 163, 184, 0.24);
+  --primary: #2563eb;
+  --primary-soft: #bfdbfe;
+  --focus: #0ea5e9;
+  --break: #3b82f6;
+}
+
+body.break-mode:not(.dark) .main-card,
+body.break-mode:not(.dark) .timer-card,
+body.break-mode:not(.dark) .controls-card,
+body.break-mode:not(.dark) .progress-card,
+body.break-mode:not(.dark) .settings-card,
+body.break-mode:not(.dark) .stats-card,
+body.break-mode:not(.dark) .side-panel {
+  background: #ffffff;
+  border-color: rgba(148, 163, 184, 0.24);
+  color: #0f172a;
+}
+
+body.break-mode:not(.dark) .quote-box {
+  background: #eff6ff;
+  color: #0f172a;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -87,11 +122,13 @@ button {
   align-items: center;
   gap: 16px;
   margin-bottom: 28px;
+  flex-wrap: wrap;
 }
 
 .app-header h1 {
   margin: 8px 0 0;
   font-size: clamp(2rem, 2.5vw, 2.8rem);
+  flex: 1 1 100%;
 }
 
 .eyebrow {
@@ -105,22 +142,48 @@ button {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  width: 100%;
 }
 
 .theme-toggle,
 .settings-toggle,
 .stats-toggle {
   border: none;
-  padding: 12px 18px;
+  padding: 10px 14px;
   border-radius: 999px;
   color: var(--text);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid transparent;
-  min-width: 140px;
+  min-width: 120px;
   white-space: nowrap;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 720px) {
+  .app-header {
+    justify-content: center;
+  }
+
+  .app-header h1 {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+
+  .header-actions {
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .theme-toggle,
+  .settings-toggle,
+  .stats-toggle {
+    min-width: 0;
+    padding: 10px 12px;
+    font-size: 0.88rem;
+  }
 }
 
 .active-toggle {
@@ -139,6 +202,7 @@ button {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
+  justify-items: center;
 }
 
 .main-card,
@@ -148,16 +212,30 @@ button {
 .settings-card,
 .progress-card,
 .stats-card {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 28px;
+  box-shadow: none;
+}
+
+.timer-card,
+.controls-card,
+.progress-card,
+.settings-card,
+.stats-card {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 28px;
   box-shadow: 0 20px 70px rgba(15, 23, 42, 0.08);
 }
 
 .main-card {
+  width: min(100%, 840px);
   padding: 28px;
   display: grid;
   gap: 20px;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .timer-card {
@@ -207,60 +285,26 @@ button {
   background: var(--break);
 }
 
-.progress-ring {
-  position: relative;
-  width: 100%;
-  max-width: 720px;
-  min-height: 440px;
-  margin: 0 auto;
-  display: grid;
-  place-items: center;
-  padding: 40px 0;
-}
-
-.progress-ring.clean-ring {
-  background: transparent;
-  border-radius: 32px;
-  box-shadow: none;
-  border: 1px solid transparent;
-}
 
 .timer-display {
-  width: min(620px, 100%);
+  width: 100%;
+  max-width: 760px;
   display: grid;
   place-items: center;
   text-align: center;
-  gap: 10px;
+  gap: 14px;
+  padding: 32px 0;
 }
 
-.progress-ring svg {
-  display: none;
+.timer-status-label {
+  font-size: 1.15rem;
+  color: var(--text);
+  opacity: 0.85;
 }
 
-.progress-ring circle {
-  display: none;
-}
-
-.progress-back {
-  display: none;
-}
-
-.progress-front {
-  display: none;
-}
-
-.progress-center {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  gap: 10px;
-  padding: 20px;
-}
 
 .timer-center-time {
-  font-size: clamp(6.5rem, 8vw, 12rem);
+  font-size: clamp(9rem, 9vw, 16rem);
   font-weight: 900;
   line-height: 1;
 }
@@ -429,6 +473,36 @@ button {
   height: 100%;
   border-radius: 999px;
   background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.toast-alert-overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 60;
+}
+
+.toast-alert {
+  pointer-events: auto;
+  min-width: min(420px, calc(100% - 40px));
+  max-width: 520px;
+  padding: 18px 22px;
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.94);
+  color: #fff;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.24);
+  animation: fadeInOut 7s ease forwards;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-16px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-16px); }
 }
 
 .stats-card {
